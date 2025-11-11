@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'config/environment.dart';
-import 'providers/auth_provider.dart';
 import 'providers/ai_assistant_provider.dart';
 import 'services/supabase_service.dart';
-import 'views/home_view.dart';
-import 'views/login_view.dart';
+import 'views/practice_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,13 +14,14 @@ void main() async {
 }
 
 class BrainLeapApp extends StatelessWidget {
-  const BrainLeapApp({super.key});
+  const BrainLeapApp({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => AiAssistantProvider()),
       ],
       child: MaterialApp(
@@ -32,48 +31,59 @@ class BrainLeapApp extends StatelessWidget {
           primarySwatch: Colors.indigo,
           useMaterial3: true,
         ),
-        home: const MainNavigationView(),
-        routes: {
-          LoginView.routeName: (_) => const LoginView(),
-        },
+        home: MainNavigationView(initialIndex: initialIndex),
       ),
     );
   }
 }
 
 class MainNavigationView extends StatefulWidget {
-  const MainNavigationView({super.key});
+  const MainNavigationView({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<MainNavigationView> createState() => _MainNavigationViewState();
 }
 
 class _MainNavigationViewState extends State<MainNavigationView> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   static const List<_NavigationItem> _navigationItems = [
     _NavigationItem(
-      icon: Icons.home,
+      icon: Icons.brush,
       label: 'Home',
-      page: HomeView(),
+      page: PracticeView(),
+      appBarTitle: null,
     ),
     _NavigationItem(
       icon: Icons.history,
       label: 'History',
       page: HistoryPlaceholderView(),
+      appBarTitle: 'History',
     ),
     _NavigationItem(
       icon: Icons.settings,
       label: 'Settings',
       page: SettingsPlaceholderView(),
+      appBarTitle: 'Settings',
     ),
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex.clamp(0, _navigationItems.length - 1);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final current = _navigationItems[_selectedIndex];
     return Scaffold(
-      appBar: AppBar(title: Text(_navigationItems[_selectedIndex].label)),
-      body: _navigationItems[_selectedIndex].page,
+      appBar: current.appBarTitle == null
+          ? null
+          : AppBar(title: Text(current.appBarTitle!)),
+      body: current.page,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
@@ -92,11 +102,13 @@ class _NavigationItem {
   final IconData icon;
   final String label;
   final Widget page;
+  final String? appBarTitle;
 
   const _NavigationItem({
     required this.icon,
     required this.label,
     required this.page,
+    this.appBarTitle,
   });
 }
 

@@ -16,11 +16,12 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const BrainLeapApp());
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(MaterialApp), findsOneWidget);
-    expect(find.text('Home'), findsWidgets);
-    expect(find.text('Select Topic'), findsOneWidget);
-    expect(find.text('Open Practice Whiteboard'), findsOneWidget);
+    expect(find.text('Practice'), findsOneWidget);
+    expect(find.text('Generate Questions'), findsOneWidget);
+    expect(find.text('Submit'), findsOneWidget);
   });
 }
