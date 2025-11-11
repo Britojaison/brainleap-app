@@ -3,72 +3,65 @@ import 'package:flutter/foundation.dart';
 import '../models/ai_hint.dart';
 import '../services/api_service.dart';
 
-class AiAssistantState {
-  const AiAssistantState({
-    this.isLoading = false,
-    this.hint,
-    this.errorMessage,
-  });
-
-  final bool isLoading;
-  final AiHint? hint;
-  final String? errorMessage;
-
-  AiAssistantState copyWith({
-    bool? isLoading,
-    AiHint? hint,
-    String? errorMessage,
-  }) {
-    return AiAssistantState(
-      isLoading: isLoading ?? this.isLoading,
-      hint: hint ?? this.hint,
-      errorMessage: errorMessage,
-    );
-  }
-}
-
-class AiAssistantProvider {
+class AiAssistantProvider extends ChangeNotifier {
   AiAssistantProvider({ApiService? apiService}) : _api = apiService ?? ApiService();
 
   final ApiService _api;
-  final ValueNotifier<AiAssistantState> state = ValueNotifier(const AiAssistantState());
+  
+  bool _isLoading = false;
+  AiHint? _hint;
+  String? _errorMessage;
+
+  bool get isLoading => _isLoading;
+  AiHint? get hint => _hint;
+  String? get errorMessage => _errorMessage;
 
   Future<void> fetchHint({required String questionId, required String canvasState}) async {
-    state.value = state.value.copyWith(isLoading: true, errorMessage: null);
+    _setLoading(true);
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       final payload = await _api.requestAiHint(questionId: questionId, canvasState: canvasState);
-      state.value = AiAssistantState(
-        isLoading: false,
-        hint: AiHint.fromJson(payload),
-      );
+      _hint = AiHint.fromJson(payload);
+      _errorMessage = null;
     } catch (error) {
-      state.value = AiAssistantState(
-        isLoading: false,
-        errorMessage: 'Unable to fetch hint. Please try again.',
-      );
+      _errorMessage = 'Unable to fetch hint. Please try again.';
+      _hint = null;
       debugPrint('AI hint error: $error');
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<void> evaluateAnswer({required String questionId, required String canvasState}) async {
-    state.value = state.value.copyWith(isLoading: true, errorMessage: null);
+    _setLoading(true);
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       final payload = await _api.evaluateCanvasAnswer(questionId: questionId, canvasState: canvasState);
-      state.value = AiAssistantState(
-        isLoading: false,
-        hint: AiHint.fromJson(payload),
-      );
+      _hint = AiHint.fromJson(payload);
+      _errorMessage = null;
     } catch (error) {
-      state.value = AiAssistantState(
-        isLoading: false,
-        errorMessage: 'Evaluation failed. Please retry after saving your work.',
-      );
+      _errorMessage = 'Evaluation failed. Please retry after saving your work.';
+      _hint = null;
       debugPrint('AI evaluation error: $error');
+    } finally {
+      _setLoading(false);
     }
   }
 
-  void dispose() {
-    state.dispose();
+  void clearHint() {
+    _hint = null;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
   }
 }
+
 

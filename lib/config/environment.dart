@@ -1,12 +1,15 @@
-class Environment {
-  static String supabaseUrl = '';
-  static String supabaseAnonKey = '';
-  static String backendBaseUrl = '';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-  static void load() {
-    // TODO: Wire up runtime environment loading (e.g., flutter_dotenv).
-    supabaseUrl = const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://example.supabase.co');
-    supabaseAnonKey = const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'public-anon-key');
-    backendBaseUrl = const String.fromEnvironment('BACKEND_BASE_URL', defaultValue: 'http://localhost:4000');
+class Environment {
+  static String get supabaseUrl => dotenv.get('SUPABASE_URL', fallback: 'https://example.supabase.co');
+  static String get supabaseAnonKey => dotenv.get('SUPABASE_ANON_KEY', fallback: 'public-anon-key');
+  static String get backendBaseUrl => dotenv.get('BACKEND_BASE_URL', fallback: 'http://localhost:4000');
+
+  static Future<void> load() async {
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      // .env file not found, will use fallback values
+    }
   }
 }
