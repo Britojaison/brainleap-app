@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'config/environment.dart';
+import 'views/ai_hint_view.dart';
 import 'views/home_view.dart';
 import 'views/login_view.dart';
-import 'views/ai_hint_view.dart';
+import 'views/settings_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +25,7 @@ class _BrainLeapAppState extends State<BrainLeapApp> {
   final _pages = const [
     HomeView(),
     HistoryPlaceholderView(),
-    SettingsPlaceholderView(),
+    SettingsView(),
   ];
 
   @override
@@ -91,13 +92,3 @@ class HistoryPlaceholderView extends StatelessWidget {
   }
 }
 
-class SettingsPlaceholderView extends StatelessWidget {
-  const SettingsPlaceholderView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Settings will appear here.'),
-    );
-  }
-}
