@@ -7,9 +7,15 @@ class Environment {
 
   static Future<void> load() async {
     try {
+      print('🔧 Environment: Loading .env file...');
       await dotenv.load(fileName: '.env');
+      print('✅ Environment: .env loaded successfully');
+      print('📡 BACKEND_BASE_URL: ${dotenv.env['BACKEND_BASE_URL'] ?? 'NOT SET'}');
+      print('🔗 Using backend URL: $backendBaseUrl');
     } catch (e) {
-      // .env file not found, will use fallback values
+      print('⚠️ Environment: .env file not found, using fallback values');
+      print('❌ Error: $e');
+      print('🔗 Fallback backend URL: $backendBaseUrl');
     }
   }
 }
