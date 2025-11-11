@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude sensitive files from backup -->
+    <exclude domain="sharedpref" path="flutter.auth-token" />
+    <exclude domain="sharedpref" path="flutter.user-profile" />
+    <exclude domain="database" path="." />
+    <exclude domain="file" path=".env" />
+</full-backup-content>
+
