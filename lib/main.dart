@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'config/environment.dart';
-import 'providers/auth_provider.dart';
 import 'providers/ai_assistant_provider.dart';
+import 'providers/auth_provider.dart';
 import 'services/supabase_service.dart';
 import 'views/home_view.dart';
 import 'views/login_view.dart';
+import 'views/settings_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,7 +66,7 @@ class _MainNavigationViewState extends State<MainNavigationView> {
     _NavigationItem(
       icon: Icons.settings,
       label: 'Settings',
-      page: SettingsPlaceholderView(),
+      page: SettingsView(),
     ),
   ];
 
@@ -111,13 +112,3 @@ class HistoryPlaceholderView extends StatelessWidget {
   }
 }
 
-class SettingsPlaceholderView extends StatelessWidget {
-  const SettingsPlaceholderView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Settings will appear here.'),
-    );
-  }
-}

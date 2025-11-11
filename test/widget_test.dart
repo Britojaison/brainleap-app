@@ -12,15 +12,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brainleap/main.dart';
 
 void main() {
-  testWidgets('BrainLeapApp renders home tab by default', (tester) async {
+  testWidgets('BrainLeapApp navigation updates visible page',
+      (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const BrainLeapApp());
     await tester.pumpAndSettle();
 
-    expect(find.byType(MaterialApp), findsOneWidget);
-    expect(find.text('Home'), findsWidgets);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text('Home'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Select Topic'), findsOneWidget);
     expect(find.text('Open Practice Whiteboard'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.history));
+    await tester.pumpAndSettle();
+    expect(find.text('History timeline will appear here.'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pumpAndSettle();
+    expect(find.text('Notification'), findsOneWidget);
+    expect(find.text('Privacy Policy'), findsOneWidget);
+    expect(find.byKey(const ValueKey('settings_logout_button')), findsOneWidget);
   });
 }
