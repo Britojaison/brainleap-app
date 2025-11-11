@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
 
 /// Displays the BrainLeap settings experience with toggleable notifications,
 /// quick links for content pages, and a logout affordance.
@@ -56,12 +59,33 @@ class _SettingsViewState extends State<SettingsView> {
             const SizedBox(height: 36),
             Center(
               child: _LogoutButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Logout action will be implemented soon.'),
+                onPressed: () async {
+                  final shouldLogout = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Logout'),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          child: const Text('Logout'),
+                        ),
+                      ],
                     ),
                   );
+
+                  if (shouldLogout == true && context.mounted) {
+                    final authProvider = context.read<AuthProvider>();
+                    await authProvider.logout();
+                    // AuthWrapper will automatically navigate to login screen
+                  }
                 },
               ),
             ),
@@ -112,7 +136,7 @@ class _NotificationToggleRow extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        _SettingsIcon(
+        const _SettingsIcon(
           icon: Icons.notifications_none_outlined,
         ),
         const SizedBox(width: 16),
@@ -195,10 +219,10 @@ class _LogoutButton extends StatelessWidget {
         Container(
           height: 56,
           width: 56,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
                 color: Color(0x14000000),
                 blurRadius: 16,
