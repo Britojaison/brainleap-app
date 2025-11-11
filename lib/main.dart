@@ -30,6 +30,7 @@ class _BrainLeapAppState extends State<BrainLeapApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'BrainLeap',
       theme: ThemeData(primarySwatch: Colors.indigo),
       home: Scaffold(
