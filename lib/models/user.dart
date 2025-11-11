@@ -9,7 +9,15 @@ class UserProfile {
     return UserProfile(
       id: json['id'] as String,
       email: json['email'] as String,
-      displayName: json['displayName'] as String?,
+      displayName: json['displayName'] as String? ?? json['display_name'] as String?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'displayName': displayName,
+    };
   }
 }
