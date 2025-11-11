@@ -1,0 +1,42 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-plugins-dependencies
+.packages
+build/
+pubspec.lock
+
+# Xcode / iOS
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Pods/
+ios/.symlinks/
+ios/profile
+ios/derived_data/
+Flutter.podspec
+
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+android/gradle/
+
+# macOS
+.DS_Store
+
+# VS Code / IntelliJ
+.vscode/
+.idea/
+
+# Environment / secrets
+.env
+*.env
+
+# Coverage
+coverage/
+
