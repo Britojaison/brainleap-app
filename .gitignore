@@ -1,42 +1,75 @@
-# Flutter/Dart
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IDE settings
+*.iml
+*.ipr
+*.iws
+.idea/
+.cursor/
+.vscode/
+
+# Environment & secrets
+.env
+.env.*
+*.keystore
+*.jks
+android/key.properties
+
+# Flutter / Dart
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
-.flutter-plugins-dependencies
 .packages
+.pub-cache/
+.pub/
 build/
-pubspec.lock
+**/build/
+coverage/
+**/doc/api/
 
-# Xcode / iOS
+# Generated iOS artifacts
+ios/Flutter/.last_build_id
 ios/Flutter/App.framework
 ios/Flutter/Flutter.framework
 ios/Flutter/Generated.xcconfig
-ios/Flutter/app.flx
-ios/ServiceDefinitions.json
-ios/Runner/GeneratedPluginRegistrant.*
-ios/Pods/
+ios/Flutter/flutter_export_environment.sh
 ios/.symlinks/
-ios/profile
-ios/derived_data/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Flutter/Flutter.podspec
 Flutter.podspec
 
-# Android
+# Generated Android artifacts
 android/.gradle/
-android/app/build/
+android/.idea/
 android/local.properties
-android/gradle/
+android/captures/
+android/app/debug
+android/app/profile
+android/app/release
 
-# macOS
-.DS_Store
+# Desktop platform build artifacts
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
+windows/flutter/ephemeral/
+windows/runner/Debug/
+windows/runner/Release/
 
-# VS Code / IntelliJ
-.vscode/
-.idea/
+# Tool caches
+.gradle/
 
-# Environment / secrets
-.env
-*.env
-
-# Coverage
-coverage/
-
+# Symbolication / obfuscation
+app.*.symbols
+app.*.map.json
