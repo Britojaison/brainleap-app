@@ -1,32 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../providers/ai_assistant_provider.dart';
 import '../widgets/ai_hint_button.dart';
 
-class AiHintView extends StatefulWidget {
+class AiHintView extends StatelessWidget {
   const AiHintView({super.key, required this.questionId, required this.canvasState});
 
   final String questionId;
   final String canvasState;
-
-  @override
-  State<AiHintView> createState() => _AiHintViewState();
-}
-
-class _AiHintViewState extends State<AiHintView> {
-  late final AiAssistantProvider _provider;
-
-  @override
-  void initState() {
-    super.initState();
-    _provider = AiAssistantProvider();
-  }
-
-  @override
-  void dispose() {
-    _provider.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,32 +26,59 @@ class _AiHintViewState extends State<AiHintView> {
             const SizedBox(height: 12),
             Expanded(
               child: Card(
+                elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: ValueListenableBuilder<AiAssistantState>(
-                    valueListenable: _provider.state,
-                    builder: (context, value, _) {
-                      if (value.isLoading) {
+                  child: Consumer<AiAssistantProvider>(
+                    builder: (context, provider, _) {
+                      if (provider.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      if (value.errorMessage != null) {
-                        return Center(child: Text(value.errorMessage!));
+                      if (provider.errorMessage != null) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                              const SizedBox(height: 16),
+                              Text(
+                                provider.errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        );
                       }
-                      if (value.hint == null) {
+                      if (provider.hint == null) {
                         return const Center(
-                          child: Text('Press the button below to ask for help.'),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.smart_toy_outlined, size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                'Press the button below to ask for help.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         );
                       }
                       return ListView(
                         children: [
-                          Text(value.hint!.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text(
+                            provider.hint!.title,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 8),
-                          Text(value.hint!.explanation),
-                          if (value.hint!.nextSteps.isNotEmpty) ...[
+                          Text(provider.hint!.explanation),
+                          if (provider.hint!.nextSteps.isNotEmpty) ...[
                             const SizedBox(height: 12),
                             const Text('Try next:', style: TextStyle(fontWeight: FontWeight.w600)),
                             const SizedBox(height: 8),
-                            ...value.hint!.nextSteps.map((step) => ListTile(
+                            ...provider.hint!.nextSteps.map((step) => ListTile(
                                   leading: const Icon(Icons.bolt_outlined),
                                   title: Text(step),
                                 )),
@@ -81,11 +90,14 @@ class _AiHintViewState extends State<AiHintView> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
             AiHintButton(
-              onPressed: () => _provider.fetchHint(
-                questionId: widget.questionId,
-                canvasState: widget.canvasState,
-              ),
+              onPressed: () {
+                context.read<AiAssistantProvider>().fetchHint(
+                      questionId: questionId,
+                      canvasState: canvasState,
+                    );
+              },
             ),
           ],
         ),
