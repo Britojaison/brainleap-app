@@ -23,6 +23,7 @@ migrate_working_dir/
 # Environment & secrets
 .env
 .env.*
+!.env.example
 *.keystore
 *.jks
 android/key.properties

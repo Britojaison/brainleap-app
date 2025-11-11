@@ -33,19 +33,27 @@ class ApiService {
 
   Future<http.Response> login({required String email, required String password}) async {
     final uri = Uri.parse('${Environment.backendBaseUrl}/auth/login');
+    print('🌐 API Service: Attempting login to: $uri');
+    print('📡 Backend Base URL: ${Environment.backendBaseUrl}');
     try {
-      return await _client
+      final response = await _client
           .post(
             uri,
             headers: _getHeaders(),
             body: jsonEncode({'email': email, 'password': password}),
           )
           .timeout(_timeout);
+      print('✅ API Service: Login request completed - Status: ${response.statusCode}');
+      print('🔁 API Service: Raw response body: ${response.body}');
+      return response;
     } on TimeoutException {
+      print('⏱️ API Service: Request timed out after ${_timeout.inSeconds}s');
       throw ApiException('Request timeout. Please check your connection.');
-    } on SocketException {
+    } on SocketException catch (e) {
+      print('🔌 API Service: Socket exception: $e');
       throw ApiException('No internet connection.');
     } catch (e) {
+      print('💥 API Service: Unexpected error: $e');
       throw ApiException('Login failed: ${e.toString()}');
     }
   }
