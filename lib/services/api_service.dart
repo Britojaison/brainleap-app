@@ -43,7 +43,8 @@ class ApiService {
             body: jsonEncode({'email': email, 'password': password}),
           )
           .timeout(_timeout);
-      print('✅ API Service: Login request successful - Status: ${response.statusCode}');
+      print('✅ API Service: Login request completed - Status: ${response.statusCode}');
+      print('🔁 API Service: Raw response body: ${response.body}');
       return response;
     } on TimeoutException {
       print('⏱️ API Service: Request timed out after ${_timeout.inSeconds}s');

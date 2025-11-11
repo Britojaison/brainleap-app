@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\Users\jeril\OneDrive\Desktop\88gb\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\jeril\OneDrive\Desktop\88gb\brainleap\brainleap-app"
+export "FLUTTER_ROOT=/Users/brito.jaison88gb.in/develop/flutter"
+export "FLUTTER_APPLICATION_PATH=/Users/brito.jaison88gb.in/brainleap/frontend"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=0.0.1"
