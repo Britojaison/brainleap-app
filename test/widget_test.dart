@@ -12,30 +12,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brainleap/main.dart';
 
 void main() {
-  testWidgets('BrainLeapApp navigation updates visible page',
+  testWidgets('LoginView shows when user is unauthenticated',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const BrainLeapApp());
-    await tester.pumpAndSettle();
 
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Home'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Select Topic'), findsOneWidget);
-    expect(find.text('Open Practice Whiteboard'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.history));
-    await tester.pumpAndSettle();
-    expect(find.text('History timeline will appear here.'), findsOneWidget);
+    // Initial pump builds splash, allow auth initialization delay.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
 
-    await tester.tap(find.byIcon(Icons.settings));
-    await tester.pumpAndSettle();
-    expect(find.text('Notification'), findsOneWidget);
-    expect(find.text('Privacy Policy'), findsOneWidget);
-    expect(find.byKey(const ValueKey('settings_logout_button')), findsOneWidget);
+    expect(find.text('BrainLeap'), findsWidgets);
+    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(2));
+    expect(find.widgetWithText(ElevatedButton, 'Sign In'), findsOneWidget);
+
+    // Validate form error messaging.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+    await tester.pump();
+    expect(find.text('Please enter your email'), findsOneWidget);
+    expect(find.text('Please enter your password'), findsOneWidget);
   });
 }

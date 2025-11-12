@@ -94,16 +94,12 @@ class _LoginViewState extends State<LoginView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 60),
-                      
-                      // App Logo/Icon
                       Icon(
                         Icons.psychology,
                         size: 80,
                         color: Theme.of(context).primaryColor,
                       ),
                       const SizedBox(height: 16),
-                      
-                      // App Name
                       const Text(
                         'BrainLeap',
                         textAlign: TextAlign.center,
@@ -113,8 +109,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      
-                      // Tagline
                       Text(
                         'AI-Powered Learning Platform',
                         textAlign: TextAlign.center,
@@ -124,8 +118,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       const SizedBox(height: 48),
-                      
-                      // Login Title
                       const Text(
                         'Sign In',
                         style: TextStyle(
@@ -134,8 +126,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
-                      // Email Field
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -157,8 +147,6 @@ class _LoginViewState extends State<LoginView> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      
-                      // Password Field
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -193,19 +181,21 @@ class _LoginViewState extends State<LoginView> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      
-                      // Login Button
                       SizedBox(
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: authProvider.isLoading ? null : _handleLogin,
+                          onPressed:
+                              authProvider.isLoading ? null : _handleLogin,
                           child: authProvider.isLoading
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Text(
@@ -218,16 +208,14 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
-                      // Forgot Password Link
                       TextButton(
                         onPressed: authProvider.isLoading
                             ? null
                             : () {
-                                // TODO: Implement forgot password
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Forgot password feature coming soon'),
+                                    content: Text(
+                                        'Forgot password feature coming soon'),
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -235,8 +223,6 @@ class _LoginViewState extends State<LoginView> {
                         child: const Text('Forgot Password?'),
                       ),
                       const SizedBox(height: 24),
-                      
-                      // Register Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -245,10 +231,11 @@ class _LoginViewState extends State<LoginView> {
                             onPressed: authProvider.isLoading
                                 ? null
                                 : () {
-                                    // TODO: Navigate to registration screen
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
                                       const SnackBar(
-                                        content: Text('Registration feature coming soon'),
+                                        content: Text(
+                                            'Registration feature coming soon'),
                                         behavior: SnackBarBehavior.floating,
                                       ),
                                     );
