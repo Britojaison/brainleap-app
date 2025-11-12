@@ -12,6 +12,7 @@ class AuthProvider extends ChangeNotifier {
 
   final ApiService _api;
   bool _isLoading = false;
+  bool _isInitialized = false;
   String? _token;
   UserProfile? _user;
   String? _errorMessage;
@@ -21,6 +22,7 @@ class AuthProvider extends ChangeNotifier {
   UserProfile? get user => _user;
   String? get errorMessage => _errorMessage;
   String? get token => _token;
+  bool get isInitialized => _isInitialized;
 
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
@@ -28,39 +30,55 @@ class AuthProvider extends ChangeNotifier {
     final userJson = prefs.getString(StorageKeys.userProfile);
     if (userJson != null) {
       try {
-        _user = UserProfile.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+        _user =
+            UserProfile.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
       } catch (e) {
         debugPrint('Error loading user profile: $e');
         await clearSession();
       }
     }
+    _isInitialized = true;
     notifyListeners();
   }
 
   Future<void> login(String email, String password) async {
     _setLoading(true);
     _errorMessage = null;
-    
+
     try {
+      debugPrint('🔐 Attempting login for: $email');
       final response = await _api.login(email: email, password: password);
+      debugPrint('📡 Login response status: ${response.statusCode}');
+      debugPrint('📦 Login response body: ${response.body}');
+      
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+        
+        // Backend returns: {"success": true, "data": {"token": "...", "user": {...}}}
+        final data = responseData['data'] as Map<String, dynamic>;
+
         _token = data['token'] as String?;
         if (data['user'] != null) {
           _user = UserProfile.fromJson(data['user'] as Map<String, dynamic>);
         }
-        
+
+        debugPrint('✅ Login successful! Token: ${_token?.substring(0, 20)}...');
+        debugPrint('👤 User: ${_user?.email}');
+
         if (_token != null) {
           await _saveSession();
+          debugPrint('💾 Session saved');
         }
+        notifyListeners();
       } else {
         final errorData = jsonDecode(response.body) as Map<String, dynamic>;
         _errorMessage = errorData['message'] as String? ?? 'Login failed';
+        debugPrint('❌ Login failed: $_errorMessage');
         throw Exception(_errorMessage);
       }
     } catch (error) {
       _errorMessage = error.toString();
-      debugPrint('Login error: $error');
+      debugPrint('💥 Login error: $error');
       rethrow;
     } finally {
       _setLoading(false);
@@ -81,7 +99,8 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString(StorageKeys.authToken, _token!);
     }
     if (_user != null) {
-      await prefs.setString(StorageKeys.userProfile, jsonEncode(_user!.toJson()));
+      await prefs.setString(
+          StorageKeys.userProfile, jsonEncode(_user!.toJson()));
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/constants.dart';
 import 'answer_canvas_view.dart';
+import 'practice_view.dart';
 import 'topic_selection_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -83,7 +84,11 @@ class _HomeViewState extends State<HomeView> {
             leading: const Icon(Icons.history_edu),
             title: const Text('Open Practice Whiteboard'),
             subtitle: const Text('Draw answers, get real-time AI help'),
-            onTap: () => _navigateToCanvas('practice-${DateTime.now().millisecondsSinceEpoch}'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PracticeView()),
+              );
+            },
           ),
         ),
       ],

@@ -15,11 +15,14 @@ dependencies:
   supabase_flutter: ^2.3.4
   flutter_dotenv: ^5.1.0
   shared_preferences: ^2.2.2
+  fastboard_flutter: ^0.1.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  mockito: 5.0.5
+  build_runner: ^2.1.8
 
 flutter:
   uses-material-design: true
@@ -30,4 +33,9 @@ metadata:
   ai_integration_notes:
     - "ApiService targets Node backend endpoints for AI hints and canvas evaluation."
     - "Supabase credentials loaded via Environment.load() using compile-time environment vars."
+
+dependency_overrides:
+  whiteboard_sdk_flutter:
+    path: third_party/whiteboard_sdk_flutter
+  flutter_inappwebview: ^6.1.5
 
