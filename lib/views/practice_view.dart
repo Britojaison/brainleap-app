@@ -3,10 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../services/practice_service.dart';
+import '../providers/practice_flow_provider.dart';
 import 'ai_hint_view.dart';
 import '../main.dart';
+import 'practice_flow/class_selection_view.dart';
 
 class PracticeView extends StatefulWidget {
   const PracticeView({super.key});
@@ -44,16 +47,39 @@ class _PracticeViewState extends State<PracticeView> {
     });
 
     try {
-      final canvasSnapshot = _canvasController.serializeToJson();
-      final payload = jsonEncode({
-        'question': _questionController.text.trim(),
-        'canvas': jsonDecode(canvasSnapshot),
-      });
-      await _practiceService.submit(payload);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Practice submission sent successfully.')),
-      );
+      final generatedQuestion =
+          context.read<PracticeFlowProvider>().currentQuestion;
+
+      if (generatedQuestion != null) {
+        // Submitting answer to generated question
+        final canvasSnapshot = _canvasController.serializeToJson();
+        await _practiceService.submitAnswer(
+          questionId: generatedQuestion.questionId,
+          answerData: canvasSnapshot,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Answer submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Clear question and canvas after submission
+        context.read<PracticeFlowProvider>().clearCurrentQuestion();
+        _canvasController.clear();
+      } else {
+        // Manual practice submission
+        final canvasSnapshot = _canvasController.serializeToJson();
+        final payload = jsonEncode({
+          'question': _questionController.text.trim(),
+          'canvas': jsonDecode(canvasSnapshot),
+        });
+        await _practiceService.submit(payload);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Practice submission sent successfully.')),
+        );
+      }
     } on PracticeSubmissionException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -90,6 +116,10 @@ class _PracticeViewState extends State<PracticeView> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch for generated question
+    final generatedQuestion =
+        context.watch<PracticeFlowProvider>().currentQuestion;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: SafeArea(
@@ -100,9 +130,11 @@ class _PracticeViewState extends State<PracticeView> {
             children: [
               _PracticeHeader(
                 onGenerateQuestions: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Generating personalized questions...'),
+                  // Navigate to practice flow
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ClassSelectionView(),
                     ),
                   );
                 },
@@ -115,17 +147,33 @@ class _PracticeViewState extends State<PracticeView> {
                 },
               ),
               const SizedBox(height: 16),
-              _QuestionInputField(
-                controller: _questionController,
-                onCameraPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('Image capture integration is in progress.'),
-                    ),
-                  );
-                },
-              ),
+
+              // Show generated question card if available
+              if (generatedQuestion != null)
+                _GeneratedQuestionCard(
+                  question: generatedQuestion.question,
+                  topic: generatedQuestion.topic,
+                  subtopic: generatedQuestion.subtopic,
+                  difficulty: generatedQuestion.difficulty,
+                  onClose: () {
+                    context.read<PracticeFlowProvider>().clearCurrentQuestion();
+                    _canvasController.clear();
+                  },
+                ),
+
+              // Show question input field only if no generated question
+              if (generatedQuestion == null)
+                _QuestionInputField(
+                  controller: _questionController,
+                  onCameraPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('Image capture integration is in progress.'),
+                      ),
+                    );
+                  },
+                ),
               const SizedBox(height: 16),
               Expanded(
                 child: Container(
@@ -637,5 +685,188 @@ class _SubmitButton extends StatelessWidget {
               ),
       ),
     );
+  }
+}
+
+/// Widget to display generated question at top of practice view
+class _GeneratedQuestionCard extends StatelessWidget {
+  const _GeneratedQuestionCard({
+    required this.question,
+    required this.topic,
+    required this.subtopic,
+    required this.difficulty,
+    required this.onClose,
+  });
+
+  final String question;
+  final String topic;
+  final String subtopic;
+  final String difficulty;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row with label and close button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'AI GENERATED QUESTION',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getDifficultyColor().withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      difficulty.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: _getDifficultyColor(),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: Icon(
+                  CupertinoIcons.xmark_circle_fill,
+                  color: Colors.grey[400],
+                  size: 22,
+                ),
+                onPressed: onClose,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Question text
+          Text(
+            question,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+              color: Colors.black87,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Topic tags
+          Wrap(
+            spacing: 8,
+            children: [
+              _buildTag(topic, CupertinoIcons.book_fill),
+              _buildTag(subtopic, CupertinoIcons.layers_fill),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Instruction text
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.pencil_circle_fill,
+                  color: Colors.blue.shade700,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Write your answer on the canvas below',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.blue.shade900,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTag(String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey[700]),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getDifficultyColor() {
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return Colors.green;
+      case 'medium':
+        return Colors.orange;
+      case 'hard':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }

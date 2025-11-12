@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'config/environment.dart';
 import 'providers/ai_assistant_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/practice_flow_provider.dart';
 import 'services/supabase_service.dart';
 import 'views/auth_wrapper.dart';
 import 'views/login_view.dart';
@@ -28,6 +29,7 @@ class BrainLeapApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => AiAssistantProvider()),
+        ChangeNotifierProvider(create: (_) => PracticeFlowProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
