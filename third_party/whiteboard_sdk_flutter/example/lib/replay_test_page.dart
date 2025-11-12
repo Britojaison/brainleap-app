@@ -119,7 +119,7 @@ class ReplayTestBodySate extends State<ReplayTestBody> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ElevatedButton(
-          child: Text("${allOpList[index].text}", softWrap: true),
+          child: Text(allOpList[index].text, softWrap: true),
           onPressed: allOpList[index].handler),
     );
   }
@@ -129,7 +129,7 @@ class ReplayTestBodySate extends State<ReplayTestBody> {
   }
 }
 
-typedef void Handler();
+typedef Handler = void Function();
 
 class OpListItem {
   String text;

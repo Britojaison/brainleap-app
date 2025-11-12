@@ -30,20 +30,20 @@ class RoomTestBodySate extends State<RoomTestBody> {
       "NETLESSROOM_YWs9eTBJOWsxeC1IVVo4VGh0NyZub25jZT0xNjI5MjU3OTQyNTM2MDAmcm9sZT0wJnNpZz1lZDdjOGJiY2M4YzVjZjQ5NDU5NmIzZGJiYzQzNDczNDJmN2NjYTAxMThlMTMyOWVlZGRmMjljNjE1NzQ5ZWFkJnV1aWQ9ZDQxODQ3OTBmZmQ1MTFlYmI5ZWJiZjdhOGYxZDc3YmQ";
   static const String UNIQUE_CLIENT_ID = "123456";
 
-  RedoStepsUpdatedCallback _onCanRedoStepsUpdate = (stepNum) {
+  final RedoStepsUpdatedCallback _onCanRedoStepsUpdate = (stepNum) {
     print('can redo step : $stepNum');
   };
 
-  UndoStepsUpdatedCallback _onCanUndoStepsUpdate = (stepNum) {
+  final UndoStepsUpdatedCallback _onCanUndoStepsUpdate = (stepNum) {
     print('can undo step : $stepNum');
   };
 
-  RoomStateChangedCallback _onRoomStateChanged = (newState) {
+  final RoomStateChangedCallback _onRoomStateChanged = (newState) {
     print('room state change : ${newState.toJson()}');
   };
 
-  RoomPhaseChangedCallback _onPhaseChanged = (phase) {
-    print('room phase state change : ${phase}');
+  final RoomPhaseChangedCallback _onPhaseChanged = (phase) {
+    print('room phase state change : $phase');
   };
 
   Future<WhiteRoom> _joinRoomAgain() async {
@@ -374,7 +374,7 @@ class OperatingViewState extends State<OperatingView> {
         allOpList.where((elem) => elem.category == Category.Appliance).toList();
   }
 
-  var random = new Random();
+  var random = Random();
 
   int _randomInRange(int from, int to) {
     return random.nextInt(to - from) + from;
@@ -384,7 +384,7 @@ class OperatingViewState extends State<OperatingView> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ElevatedButton(
-          child: Text("${filterOptList[index].text}", softWrap: true),
+          child: Text(filterOptList[index].text, softWrap: true),
           onPressed: filterOptList[index].handler),
     );
   }
@@ -396,12 +396,13 @@ class OperatingViewState extends State<OperatingView> {
             child: Text(_getFilterDisplay(categories[index]), softWrap: true),
             onPressed: () {
               setState(() {
-                if (categories[index] == Category.All)
+                if (categories[index] == Category.All) {
                   filterOptList = allOpList;
-                else
+                } else {
                   filterOptList = allOpList
                       .where((item) => item.category == categories[index])
                       .toList();
+                }
               });
             }));
   }

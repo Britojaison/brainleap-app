@@ -423,7 +423,6 @@ class _PracticeHeader extends StatelessWidget {
           child: CupertinoButton(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             onPressed: onGenerateQuestions,
-            minSize: 0,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -441,7 +440,7 @@ class _PracticeHeader extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
+            ), minimumSize: Size(0, 0),
           ),
         ),
         const SizedBox(width: 8),
@@ -453,12 +452,11 @@ class _PracticeHeader extends StatelessWidget {
           child: CupertinoButton(
             padding: const EdgeInsets.all(6),
             onPressed: onAddQuestion,
-            minSize: 0,
             child: Icon(
               CupertinoIcons.add,
               color: Colors.grey.shade800,
               size: 18,
-            ),
+            ), minimumSize: Size(0, 0),
           ),
         ),
       ],
