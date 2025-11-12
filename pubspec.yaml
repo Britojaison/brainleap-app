@@ -32,3 +32,8 @@ metadata:
     - "ApiService targets Node backend endpoints for AI hints and canvas evaluation."
     - "Supabase credentials loaded via Environment.load() using compile-time environment vars."
 
+dependency_overrides:
+  whiteboard_sdk_flutter:
+    path: third_party/whiteboard_sdk_flutter
+  flutter_inappwebview: ^6.1.5
+
