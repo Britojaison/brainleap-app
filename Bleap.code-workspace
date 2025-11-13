@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "brainleap-server",
+			"path": "../brainleap-server"
+		},
+		{
+			"name": "brainleap-app",
+			"path": "."
+		}
+	],
+	"settings": {}
+}
