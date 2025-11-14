@@ -80,5 +80,7 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to capture your handwritten or printed questions.</string>
 </dict>
 </plist>

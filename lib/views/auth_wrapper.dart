@@ -26,15 +26,20 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Future<void> _checkAuthState() async {
     // Load saved authentication state
     final authProvider = context.read<AuthProvider>();
-    await authProvider.initialize();
-    
-    // Add small delay for smooth transition
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    if (mounted) {
-      setState(() {
-        _isInitializing = false;
-      });
+    try {
+      await authProvider.initialize();
+    } catch (error, stackTrace) {
+      debugPrint('❗ AuthWrapper: Failed to initialize auth provider → $error');
+      debugPrint('$stackTrace');
+    } finally {
+      // Add small delay for smooth transition even if initialization fails
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (mounted) {
+        setState(() {
+          _isInitializing = false;
+        });
+      }
     }
   }
 

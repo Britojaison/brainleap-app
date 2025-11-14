@@ -48,16 +48,12 @@ class AuthProvider extends ChangeNotifier {
     try {
       debugPrint('🔐 Attempting login for: $email');
       final response = await _api.login(email: email, password: password);
-      debugPrint('📡 Login response status: ${response.statusCode}');
-      debugPrint('📦 Login response body: ${response.body}');
-      
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body) as Map<String, dynamic>;
-        
-        // Backend returns: {"success": true, "data": {"token": "...", "user": {...}}}
-        final data = responseData['data'] as Map<String, dynamic>;
+
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'] as Map<String, dynamic>;
 
         _token = data['token'] as String?;
+        final refreshToken = data['refreshToken'] as String?;
         if (data['user'] != null) {
           _user = UserProfile.fromJson(data['user'] as Map<String, dynamic>);
         }
@@ -67,19 +63,22 @@ class AuthProvider extends ChangeNotifier {
 
         if (_token != null) {
           await _saveSession();
+          if (refreshToken != null) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(StorageKeys.refreshToken, refreshToken);
+          }
           debugPrint('💾 Session saved');
         }
         notifyListeners();
       } else {
-        final errorData = jsonDecode(response.body) as Map<String, dynamic>;
-        _errorMessage = errorData['message'] as String? ?? 'Login failed';
+        _errorMessage = (response['message'] as String?) ?? 'Login failed';
         debugPrint('❌ Login failed: $_errorMessage');
         throw Exception(_errorMessage);
       }
-    } catch (error) {
+    } on Exception catch (error) {
       _errorMessage = error.toString();
       debugPrint('💥 Login error: $error');
-      rethrow;
+      throw Exception(_errorMessage);
     } finally {
       _setLoading(false);
     }
@@ -107,6 +106,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(StorageKeys.authToken);
+    await prefs.remove(StorageKeys.refreshToken);
     await prefs.remove(StorageKeys.userProfile);
   }
 

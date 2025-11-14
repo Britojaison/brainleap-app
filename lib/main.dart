@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'config/environment.dart';
 import 'providers/ai_assistant_provider.dart';
 import 'providers/auth_provider.dart';
-import 'services/supabase_service.dart';
 import 'views/auth_wrapper.dart';
 import 'views/login_view.dart';
 import 'views/practice_view.dart';
@@ -13,7 +12,6 @@ import 'views/settings_view.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Environment.load();
-  await SupabaseService.instance.initialize();
   runApp(const BrainLeapApp());
 }
 

@@ -9,6 +9,7 @@ class RoutePaths {
 
 class StorageKeys {
   static const String authToken = 'auth-token';
+  static const String refreshToken = 'refresh-token';
   static const String userProfile = 'user-profile';
   static const String recentSession = 'recent-session';
   static const String lastQuestionId = 'last-question-id';
