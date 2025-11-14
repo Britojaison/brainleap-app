@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -158,7 +159,10 @@ class _PracticeViewState extends State<PracticeView> {
               _QuestionInputField(
                 controller: _questionController,
                 onCameraPressed: _openCameraOverlay,
-                onClearPressed: _clearQuestion,
+                onClearPressed: () {
+                  // X button now activates eraser tool instead of clearing question
+                  _canvasController.setTool(DrawingTool.eraser);
+                },
                 showClearButton: hasQuestionText,
               ),
               const SizedBox(height: 4),
@@ -189,6 +193,7 @@ class _PracticeViewState extends State<PracticeView> {
                           bottom: 16,
                           child: Center(
                             child: _WhiteboardToolbar(
+                              controller: _canvasController,
                               onPenTap: () =>
                                   _canvasController.setTool(DrawingTool.pen),
                               onEraserTap: () =>
@@ -497,8 +502,11 @@ class LocalCanvasController extends ChangeNotifier {
   bool get isDrawing => _isDrawing;
 
   void setTool(DrawingTool tool) {
-    _currentTool = tool;
-    notifyListeners();
+    if (_currentTool != tool) {
+      _currentTool = tool;
+      print('🛠️ Tool changed to: ${tool == DrawingTool.eraser ? "ERASER" : "PEN"}');
+      notifyListeners();
+    }
   }
 
   void startStroke(Offset point) {
@@ -631,7 +639,7 @@ class _CanvasPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Draw dotted grid background
+    // Draw dotted grid background FIRST (so it's underneath everything)
     final gridPaint = Paint()
       ..color = Colors.grey.withOpacity(0.25)
       ..style = PaintingStyle.fill;
@@ -645,7 +653,19 @@ class _CanvasPainter extends CustomPainter {
       }
     }
 
-    // Draw all strokes with optimized painting
+    // Separate pen strokes and eraser strokes
+    final penStrokes = <DrawingStroke>[];
+    final eraserStrokes = <DrawingStroke>[];
+    
+    for (final stroke in strokes) {
+      if (stroke.isEraser) {
+        eraserStrokes.add(stroke);
+      } else {
+        penStrokes.add(stroke);
+      }
+    }
+
+    // Draw pen strokes, but exclude parts that intersect with eraser strokes
     final penPaint = Paint()
       ..color = Colors.black87
       ..strokeCap = StrokeCap.round
@@ -654,18 +674,12 @@ class _CanvasPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..isAntiAlias = true;
 
-    final eraserPaint = Paint()
-      ..color = Colors.white
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 20.0
-      ..style = PaintingStyle.stroke
-      ..strokeJoin = StrokeJoin.round
-      ..isAntiAlias = true;
-
-    for (final stroke in strokes) {
-      final paint = stroke.isEraser ? eraserPaint : penPaint;
+    // Draw pen strokes to a picture first, then apply eraser mask
+    final recorder = ui.PictureRecorder();
+    final pictureCanvas = Canvas(recorder);
+    
+    for (final stroke in penStrokes) {
       final path = Path();
-
       bool started = false;
       for (int i = 0; i < stroke.points.length; i++) {
         final point = stroke.points[i];
@@ -682,7 +696,58 @@ class _CanvasPainter extends CustomPainter {
         }
       }
 
-      canvas.drawPath(path, paint);
+      pictureCanvas.drawPath(path, penPaint);
+    }
+
+    final penPicture = recorder.endRecording();
+
+    // If there are eraser strokes, create a mask and apply it
+    if (eraserStrokes.isNotEmpty) {
+      // Create eraser mask path
+      final eraserMask = Path();
+      final eraserWidth = 20.0;
+      
+      for (final stroke in eraserStrokes) {
+        for (int i = 0; i < stroke.points.length; i++) {
+          final point = stroke.points[i];
+          if (point == Offset.infinite) continue;
+          
+          // Add circle for each eraser point to create mask
+          eraserMask.addOval(
+            Rect.fromCircle(center: point, radius: eraserWidth / 2),
+          );
+        }
+      }
+
+      // Draw pen picture with eraser mask applied
+      canvas.saveLayer(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        Paint(),
+      );
+      
+      // Draw pen strokes
+      canvas.drawPicture(penPicture);
+      
+      // Apply eraser mask using dstOut to remove pen strokes
+      final maskPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill
+        ..blendMode = BlendMode.dstOut;
+      
+      canvas.drawPath(eraserMask, maskPaint);
+      
+      canvas.restore();
+    } else {
+      // No eraser, just draw pen strokes
+      canvas.drawPicture(penPicture);
+    }
+
+    // Draw grid again ON TOP to restore erased grid dots
+    // This ensures grid dots are never permanently erased
+    for (double x = 0; x < size.width; x += spacing) {
+      for (double y = 0; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), dotRadius, gridPaint);
+      }
     }
   }
 
@@ -923,7 +988,7 @@ class _QuestionCardState extends State<_QuestionCard> {
                         if (widget.hasText)
                           _QuestionActionButton(
                             icon: CupertinoIcons.xmark,
-                            tooltip: 'Clear question',
+                            tooltip: 'Activate eraser',
                             onTap: widget.onClearPressed,
                             size: 32,
                           ),
@@ -1180,8 +1245,9 @@ class _QuestionActionButton extends StatelessWidget {
   }
 }
 
-class _WhiteboardToolbar extends StatelessWidget {
+class _WhiteboardToolbar extends StatefulWidget {
   const _WhiteboardToolbar({
+    required this.controller,
     required this.onPenTap,
     required this.onEraserTap,
     required this.onUndoTap,
@@ -1190,6 +1256,7 @@ class _WhiteboardToolbar extends StatelessWidget {
     required this.onAiHintTap,
   });
 
+  final LocalCanvasController controller;
   final VoidCallback onPenTap;
   final VoidCallback onEraserTap;
   final VoidCallback onUndoTap;
@@ -1198,7 +1265,32 @@ class _WhiteboardToolbar extends StatelessWidget {
   final Future<void> Function() onAiHintTap;
 
   @override
+  State<_WhiteboardToolbar> createState() => _WhiteboardToolbarState();
+}
+
+class _WhiteboardToolbarState extends State<_WhiteboardToolbar> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onControllerChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final currentTool = widget.controller.currentTool;
+    final isEraserActive = currentTool == DrawingTool.eraser;
+    final isPenActive = currentTool == DrawingTool.pen;
+    
     return Container(
       constraints: const BoxConstraints(maxWidth: 420),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -1217,16 +1309,23 @@ class _WhiteboardToolbar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _ToolbarIconButton(icon: CupertinoIcons.pencil, onTap: onPenTap),
           _ToolbarIconButton(
-              icon: CupertinoIcons.delete_left, onTap: onEraserTap),
+            icon: CupertinoIcons.pencil,
+            onTap: widget.onPenTap,
+            isActive: isPenActive,
+          ),
+          _ToolbarIconButton(
+            icon: CupertinoIcons.delete_left,
+            onTap: widget.onEraserTap,
+            isActive: isEraserActive,
+          ),
           _ToolbarIconButton(icon: CupertinoIcons.textformat, onTap: () {}),
           _ToolbarIconButton(icon: CupertinoIcons.rectangle, onTap: () {}),
           _ToolbarIconButton(
-              icon: CupertinoIcons.arrow_right, onTap: onUndoTap),
+              icon: CupertinoIcons.arrow_right, onTap: widget.onUndoTap),
           _ToolbarIconButton(icon: CupertinoIcons.camera, onTap: () {}),
           _ToolbarIconButton(
-              icon: CupertinoIcons.sparkles, onTap: () => onAiHintTap()),
+              icon: CupertinoIcons.sparkles, onTap: () => widget.onAiHintTap()),
         ],
       ),
     );
@@ -1234,21 +1333,39 @@ class _WhiteboardToolbar extends StatelessWidget {
 }
 
 class _ToolbarIconButton extends StatelessWidget {
-  const _ToolbarIconButton({required this.icon, required this.onTap});
+  const _ToolbarIconButton({
+    required this.icon,
+    required this.onTap,
+    this.isActive = false,
+  });
 
   final IconData icon;
   final VoidCallback onTap;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return Container(
+      decoration: BoxDecoration(
+        color: isActive ? Colors.blue.withOpacity(0.15) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Icon(icon, color: Colors.black87, size: 22),
+        border: isActive
+            ? Border.all(color: Colors.blue.withOpacity(0.4), width: 1.5)
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(
+              icon,
+              color: isActive ? Colors.blue : Colors.black87,
+              size: 22,
+            ),
+          ),
         ),
       ),
     );
